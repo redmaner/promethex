@@ -4,7 +4,7 @@ defmodule Promethex.Exporter do
   defp defaults do
     [
       path: "/metrics",
-      method: "get"
+      method: "GET"
     ]
   end
 
@@ -25,11 +25,13 @@ defmodule Promethex.Exporter do
         conn
         |> Plug.Conn.put_resp_content_type("text/plain")
         |> Plug.Conn.send_resp(200, body)
+        |> Plug.Conn.halt()
 
       :error ->
         conn
         |> Plug.Conn.put_resp_content_type("text/plain")
         |> Plug.Conn.send_resp(200, "Internal errror")
+        |> Plug.Conn.halt()
     end
   end
 

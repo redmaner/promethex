@@ -84,6 +84,8 @@ defmodule Promethex do
   def get_all do
     case :ets.tab2list(@ets_table_name) do
       metrics when metrics != [] ->
+        metrics = metrics |> Enum.map(fn {_key, metric} -> metric end)
+
         {:ok, metrics}
 
       _else ->
