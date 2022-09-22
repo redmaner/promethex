@@ -3,7 +3,7 @@ defmodule Promethex do
   use GenServer
 
   alias Promethex.Spec
-  alias Promethex.Spec.{Bucket, Metric}
+  alias Promethex.Spec.{Metric, MetricPoint}
 
   @ets_table_name :promethex_registry
 
@@ -41,7 +41,7 @@ defmodule Promethex do
       type: type,
       name: name,
       help: help,
-      buckets: %{},
+      metric_points: %{},
       created: System.os_time(:second)
     }
 
@@ -55,14 +55,14 @@ defmodule Promethex do
         _config
       ) do
     case lookup_metric(name) do
-      {:ok, metric = %Metric{type: metric_type, buckets: buckets}} ->
+      {:ok, metric = %Metric{type: metric_type, metric_points: metric_points}} ->
         if metric_type != type do
           raise InvalidMetricAction
         end
 
-        new_value = update_metric_value(buckets, labels, value, type, action)
-        buckets = metric.buckets |> Map.put(labels, new_value)
-        new_metric = %Metric{metric | buckets: buckets}
+        new_value = update_metric_value(metric_points, labels, value, type, action)
+        metric_points = metric.metric_points |> Map.put(labels, new_value)
+        new_metric = %Metric{metric | metric_points: metric_points}
 
         true = :ets.insert(@ets_table_name, {name, new_metric})
 
@@ -96,23 +96,23 @@ defmodule Promethex do
     end
   end
 
-  defp update_metric_value(buckets, labels, value, _type, _action)
-       when not is_map_key(buckets, labels) do
-    %Bucket{value: value}
+  defp update_metric_value(metric_points, labels, value, _type, _action)
+       when not is_map_key(metric_points, labels) do
+    %MetricPoint{value: value}
   end
 
-  defp update_metric_value(buckets, labels, value, type, action) do
-    bucket = Map.fetch!(buckets, labels)
+  defp update_metric_value(metric_points, labels, value, type, action) do
+    bucket = Map.fetch!(metric_points, labels)
 
     cond do
       type == :GAUGE and action == :set ->
-        %Bucket{value: value}
+        %MetricPoint{value: value}
 
       type == :GAUGE and action == :dec ->
-        %Bucket{value: bucket.value - value}
+        %MetricPoint{value: bucket.value - value}
 
       true ->
-        %Bucket{value: bucket.value + value}
+        %MetricPoint{value: bucket.value + value}
     end
   end
 end

@@ -4,7 +4,7 @@ defmodule PromethexTest do
   import ExUnit.CaptureLog
 
   alias Promethex.Spec
-  alias Promethex.Spec.{Bucket, Metric}
+  alias Promethex.Spec.{Metric, MetricPoint}
   alias Promethex.Metric.{Counter, Gauge}
 
   @test_specs [
@@ -21,7 +21,7 @@ defmodule PromethexTest do
 
     assert metric ==
              %Metric{
-               buckets: %{},
+               metric_points: %{},
                help: nil,
                name: "test.counter",
                type: :COUNTER,
@@ -32,7 +32,7 @@ defmodule PromethexTest do
 
     assert metric ==
              %Metric{
-               buckets: %{},
+               metric_points: %{},
                help: nil,
                name: "test.gauge",
                type: :GAUGE,
@@ -54,9 +54,9 @@ defmodule PromethexTest do
 
     assert metric ==
              %Metric{
-               buckets: %{
-                 [] => %Bucket{timestamp: nil, value: 100},
-                 [test: 2] => %Bucket{timestamp: nil, value: 100}
+               metric_points: %{
+                 [] => %MetricPoint{timestamp: nil, value: 100},
+                 [test: 2] => %MetricPoint{timestamp: nil, value: 100}
                },
                help: nil,
                name: "test.gauge",
@@ -71,9 +71,9 @@ defmodule PromethexTest do
 
     assert metric ==
              %Metric{
-               buckets: %{
-                 [] => %Bucket{timestamp: nil, value: 101},
-                 [test: 2] => %Bucket{timestamp: nil, value: 98}
+               metric_points: %{
+                 [] => %MetricPoint{timestamp: nil, value: 101},
+                 [test: 2] => %MetricPoint{timestamp: nil, value: 98}
                },
                help: nil,
                name: "test.gauge",
@@ -96,9 +96,9 @@ defmodule PromethexTest do
 
     assert metric ==
              %Metric{
-               buckets: %{
-                 [] => %Bucket{timestamp: nil, value: 1},
-                 [test: 2] => %Bucket{timestamp: nil, value: 2}
+               metric_points: %{
+                 [] => %MetricPoint{timestamp: nil, value: 1},
+                 [test: 2] => %MetricPoint{timestamp: nil, value: 2}
                },
                help: nil,
                name: "test.counter",

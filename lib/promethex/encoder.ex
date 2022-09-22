@@ -1,6 +1,6 @@
 defmodule Promethex.Encoder do
   @moduledoc false
-  alias Promethex.Spec.{Bucket, Metric}
+  alias Promethex.Spec.{Metric, MetricPoint}
 
   def encode(metrics) when is_list(metrics) do
     metrics
@@ -10,13 +10,13 @@ defmodule Promethex.Encoder do
     |> Kernel.<>("\n")
   end
 
-  def encode(%Metric{buckets: buckets, type: type, name: name, help: help, created: created}) do
+  def encode(%Metric{metric_points: metric_points, type: type, name: name, help: help, created: created}) do
     enc_type = type |> to_string() |> String.downcase()
-    bucket_name = encode_name(name, type)
+    metric_point_name = encode_name(name, type)
 
     "# TYPE #{name} #{enc_type}\n"
     |> encode_help(name, help)
-    |> encode_buckets(bucket_name, buckets)
+    |> encode_metric_points(metric_point_name, metric_points)
     |> encode_created(name, created, type)
   end
 
@@ -26,25 +26,25 @@ defmodule Promethex.Encoder do
     enc_data <> "# HELP #{name} #{help}\n"
   end
 
-  defp encode_buckets(enc_data, name, buckets) when buckets == %{} do
+  defp encode_metric_points(enc_data, name, metric_points) when metric_points == %{} do
     enc_data <> "#{name} 0\n"
   end
 
-  defp encode_buckets(enc_data, name, buckets) do
-    {no_label, buckets} = Map.pop(buckets, [])
+  defp encode_metric_points(enc_data, name, metric_points) do
+    {no_label, metric_points} = Map.pop(metric_points, [])
 
     enc_data =
       if no_label do
-        enc_data |> encode_bucket(name, {[], no_label})
+        enc_data |> encode_metric_point(name, {[], no_label})
       else
         enc_data
       end
 
-    buckets
-    |> Enum.reduce(enc_data, &encode_bucket(&2, name, &1))
+    metric_points
+    |> Enum.reduce(enc_data, &encode_metric_point(&2, name, &1))
   end
 
-  defp encode_bucket(enc_data, name, {labels, %Bucket{value: value}}) when labels != [] do
+  defp encode_metric_point(enc_data, name, {labels, %MetricPoint{value: value}}) when labels != [] do
     labels =
       labels
       |> Stream.map(fn {key, name} -> "#{key}=#{name}" end)
@@ -53,7 +53,7 @@ defmodule Promethex.Encoder do
     enc_data <> "#{name}{#{labels}} #{value}\n"
   end
 
-  defp encode_bucket(enc_data, name, {_labels, %Bucket{value: value}}) do
+  defp encode_metric_point(enc_data, name, {_labels, %MetricPoint{value: value}}) do
     enc_data <> "#{name} #{value}\n"
   end
 
