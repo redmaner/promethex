@@ -44,7 +44,8 @@ defmodule Promethex do
       type: type,
       name: name,
       help: help,
-      buckets: %{}
+      buckets: %{},
+      created: System.os_time(:second)
     }
 
     true = :ets.insert(@ets_table_name, {name, metric})

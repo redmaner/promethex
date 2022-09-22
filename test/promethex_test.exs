@@ -15,11 +15,27 @@ defmodule PromethexTest do
 
     Process.sleep(100)
 
-    assert Promethex.lookup_metric("test.counter") ==
-             {:ok, %Metric{buckets: %{}, help: nil, name: "test.counter", type: :COUNTER}}
+    {:ok, metric} = Promethex.lookup_metric("test.counter")
 
-    assert Promethex.lookup_metric("test.gauge") ==
-             {:ok, %Metric{buckets: %{}, help: nil, name: "test.gauge", type: :GAUGE}}
+    assert metric ==
+             %Metric{
+               buckets: %{},
+               help: nil,
+               name: "test.counter",
+               type: :COUNTER,
+               created: metric.created
+             }
+
+    {:ok, metric} = Promethex.lookup_metric("test.gauge")
+
+    assert metric ==
+             %Metric{
+               buckets: %{},
+               help: nil,
+               name: "test.gauge",
+               type: :GAUGE,
+               created: metric.created
+             }
 
     Process.exit(pid, :normal)
   end
@@ -32,32 +48,36 @@ defmodule PromethexTest do
     Gauge.set("test.gauge", 100)
     Gauge.set("test.gauge", 100, test: 2)
 
-    assert Promethex.lookup_metric("test.gauge") ==
-             {:ok,
-              %Metric{
-                buckets: %{
-                  [] => %Bucket{timestamp: nil, value: 100},
-                  [test: 2] => %Bucket{timestamp: nil, value: 100}
-                },
-                help: nil,
-                name: "test.gauge",
-                type: :GAUGE
-              }}
+    {:ok, metric} = Promethex.lookup_metric("test.gauge")
+
+    assert metric ==
+             %Metric{
+               buckets: %{
+                 [] => %Bucket{timestamp: nil, value: 100},
+                 [test: 2] => %Bucket{timestamp: nil, value: 100}
+               },
+               help: nil,
+               name: "test.gauge",
+               type: :GAUGE,
+               created: metric.created
+             }
 
     Gauge.inc("test.gauge", 1)
     Gauge.dec("test.gauge", 2, test: 2)
 
-    assert Promethex.lookup_metric("test.gauge") ==
-             {:ok,
-              %Metric{
-                buckets: %{
-                  [] => %Bucket{timestamp: nil, value: 101},
-                  [test: 2] => %Bucket{timestamp: nil, value: 98}
-                },
-                help: nil,
-                name: "test.gauge",
-                type: :GAUGE
-              }}
+    {:ok, metric} = Promethex.lookup_metric("test.gauge")
+
+    assert metric ==
+             %Metric{
+               buckets: %{
+                 [] => %Bucket{timestamp: nil, value: 101},
+                 [test: 2] => %Bucket{timestamp: nil, value: 98}
+               },
+               help: nil,
+               name: "test.gauge",
+               type: :GAUGE,
+               created: metric.created
+             }
 
     Process.exit(pid, :normal)
   end
@@ -70,17 +90,19 @@ defmodule PromethexTest do
     Counter.inc("test.counter", 1)
     Counter.inc("test.counter", 2, test: 2)
 
-    assert Promethex.lookup_metric("test.counter") ==
-             {:ok,
-              %Metric{
-                buckets: %{
-                  [] => %Bucket{timestamp: nil, value: 1},
-                  [test: 2] => %Bucket{timestamp: nil, value: 2}
-                },
-                help: nil,
-                name: "test.counter",
-                type: :COUNTER
-              }}
+    {:ok, metric} = Promethex.lookup_metric("test.counter")
+
+    assert metric ==
+             %Metric{
+               buckets: %{
+                 [] => %Bucket{timestamp: nil, value: 1},
+                 [test: 2] => %Bucket{timestamp: nil, value: 2}
+               },
+               help: nil,
+               name: "test.counter",
+               type: :COUNTER,
+               created: metric.created
+             }
 
     Process.exit(pid, :normal)
   end

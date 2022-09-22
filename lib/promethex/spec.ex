@@ -35,10 +35,11 @@ defmodule Promethex.Spec do
             type: Promethex.Spec.metric_type(),
             name: atom(),
             help: binary(),
-            buckets: %{Keyword.t() => Bucket.t()}
+            buckets: %{Keyword.t() => Bucket.t()},
+            created: integer()
           }
 
     @enforce_keys [:type, :name, :buckets]
-    defstruct [:type, :name, :help, :buckets]
+    defstruct [:type, :name, :help, :buckets, :created]
   end
 end

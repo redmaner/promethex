@@ -7,14 +7,17 @@ defmodule Promethex.Encoder do
     |> Enum.reduce("", fn metric, acc ->
       acc <> encode(metric)
     end)
+    |> Kernel.<>("\n")
   end
 
-  def encode(%Metric{buckets: buckets, type: type, name: name, help: help}) do
+  def encode(%Metric{buckets: buckets, type: type, name: name, help: help, created: created}) do
     enc_type = type |> to_string() |> String.downcase()
+    bucket_name = encode_name(name, type)
 
     "# TYPE #{name} #{enc_type}\n"
     |> encode_help(name, help)
-    |> encode_buckets(name, buckets)
+    |> encode_buckets(bucket_name, buckets)
+    |> encode_created(name, created, type)
   end
 
   defp encode_help(enc_data, _name, help) when help in ["", nil], do: enc_data
@@ -53,4 +56,14 @@ defmodule Promethex.Encoder do
   defp encode_bucket(enc_data, name, {_labels, %Bucket{value: value}}) do
     enc_data <> "#{name} #{value}\n"
   end
+
+  defp encode_name(name, type) when type == :COUNTER, do: name <> "_total"
+  defp encode_name(name, _type), do: name
+
+  defp encode_created(enc_data, name, created, type)
+       when is_integer(created) and type == :COUNTER do
+    enc_data <> "#{name}_created #{created}\n"
+  end
+
+  defp encode_created(enc_data, _name, _created, _type), do: enc_data
 end
