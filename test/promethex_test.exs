@@ -1,6 +1,8 @@
 defmodule PromethexTest do
   use ExUnit.Case
 
+  import ExUnit.CaptureLog
+
   alias Promethex.Spec
   alias Promethex.Spec.{Bucket, Metric}
   alias Promethex.Metric.{Counter, Gauge}
@@ -103,6 +105,31 @@ defmodule PromethexTest do
                type: :COUNTER,
                created: metric.created
              }
+
+    Process.exit(pid, :normal)
+  end
+
+  test "Test metric for undefined metric" do
+    {:ok, pid} = Promethex.start_link(@test_specs, :promethextest4)
+
+    Process.sleep(100)
+
+    assert capture_log(fn ->
+             Counter.inc("test.counter2", 1)
+           end) =~ "Undefined prometheus metric: metric test.counter2 is not defined"
+
+    Process.exit(pid, :normal)
+  end
+
+  test "Test invalid action for metric" do
+    {:ok, pid} = Promethex.start_link(@test_specs, :promethextest4)
+
+    Process.sleep(100)
+
+    assert capture_log(fn ->
+             Gauge.set("test.counter", 1)
+           end) =~
+             "Invalid action for prometheus metric: set not allowed for metric test.counter of type GAUGE"
 
     Process.exit(pid, :normal)
   end

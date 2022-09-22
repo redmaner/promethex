@@ -1,14 +1,11 @@
 defmodule Promethex do
+  require Logger
   use GenServer
 
   alias Promethex.Spec
   alias Promethex.Spec.{Bucket, Metric}
 
   @ets_table_name :promethex_registry
-
-  defmodule UndefinedMetric do
-    defexception [:message]
-  end
 
   defmodule InvalidMetricAction do
     defexception [:message]
@@ -70,8 +67,13 @@ defmodule Promethex do
         true = :ets.insert(@ets_table_name, {name, new_metric})
 
       _else ->
-        raise UndefinedMetric
+        Logger.warn("Undefined prometheus metric: metric #{name} is not defined")
     end
+  rescue
+    InvalidMetricAction ->
+      Logger.warn(
+        "Invalid action for prometheus metric: #{action} not allowed for metric #{name} of type #{type}"
+      )
   end
 
   @doc false
