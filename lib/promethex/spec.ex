@@ -8,11 +8,12 @@ defmodule Promethex.Spec do
   @type t :: %__MODULE__{
           type: metric_type(),
           name: atom(),
-          help: binary()
+          help: binary(),
+          buckets: [integer()] | nil
         }
 
   @enforce_keys [:type, :name]
-  defstruct [:type, :name, :help]
+  defstruct [:type, :name, :help, :buckets]
 
   defmodule MetricPoint do
     @moduledoc false
@@ -36,10 +37,13 @@ defmodule Promethex.Spec do
             name: atom(),
             help: binary(),
             metric_points: %{Keyword.t() => MetricPoint.t()},
+            buckets: [integer()] | nil,
+            count: integer(),
+            sum: integer(),
             created: integer()
           }
 
     @enforce_keys [:type, :name, :metric_points]
-    defstruct [:type, :name, :help, :metric_points, :created]
+    defstruct [:type, :name, :help, :metric_points, :buckets, :sum, :count, :created]
   end
 end

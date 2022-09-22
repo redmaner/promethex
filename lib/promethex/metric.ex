@@ -27,4 +27,10 @@ defmodule Promethex.Metric do
       Promethex.Metric.dispatch(name, :GAUGE, :set, value, labels)
     end
   end
+
+  defmodule Histogram do
+    def inc(name, value \\ 1) do
+      Promethex.Metric.dispatch(name, :HISTOGRAM, :inc, value, [])
+    end
+  end
 end
